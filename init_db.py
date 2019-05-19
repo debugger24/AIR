@@ -17,7 +17,6 @@ except:
 mysql_cursor.execute("CREATE DATABASE air")
 
 ## Connect to new database
-
 sql_connection = mysql.connector.connect(
     host="localhost",
     user="root",
@@ -65,7 +64,6 @@ mysql_cursor.execute('''CREATE TABLE Record (
 
 ## Show all tables in database
 mysql_cursor.execute("SHOW TABLES")
-
 for x in mysql_cursor:
     print(x)
 
