@@ -207,20 +207,22 @@ def fetch_and_dump(eventURLs):
         insert_new_record_in_db(data, eventURL)
 
 def get_event_urls():
+    '''
+        args:
+            
+        return:
+            List of event URLs on event page
+    '''
     URL_PREFIX = "https://www.audaxindia.org/"
+    EVENT_PAGE_URL = "https://www.audaxindia.org/events.php"
     events_links = []
-    r = requests.get('https://www.audaxindia.org/events.php')
+    r = requests.get(EVENT_PAGE_URL)
     soup = BeautifulSoup(r.text, 'html.parser')
     event_tags = soup.find(id='mytable').tbody.find_all('a')
     for event_tag in event_tags:
         events_links.append(URL_PREFIX + event_tag['href'])
+    print ("\n\nFound", len(events_links), "URLs on page", EVENT_PAGE_URL, "\n\n")
     return events_links
 
 event_urls = get_event_urls()
 fetch_and_dump(event_urls)
-
-
-
-
-
-
