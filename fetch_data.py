@@ -15,6 +15,8 @@ mysql_cursor = sql_connection.cursor()
 
 def get_club_id(club_name):
     '''
+        Get the club if using club name
+
         args:
             club_name: string
         return:
@@ -31,6 +33,8 @@ def get_club_id(club_name):
 
 def insert_clubs(club_names):
     '''
+        Insert clubname into database
+
         args:
             club_names: list
     '''
@@ -47,6 +51,12 @@ def insert_clubs(club_names):
         print (0, "Clubs Inserted")
 
 def get_event_id_from_url(eventURL):
+    '''
+        Get event ID from event URL
+
+        args:
+            eventURL: string
+    '''
     query = 'SELECT * FROM Event WHERE url = %s'
     value = (eventURL, )
     mysql_cursor.execute(query, value)
@@ -57,6 +67,9 @@ def get_event_id_from_url(eventURL):
         return None
 
 def insert_event(eventURL, distance, date, club_name):
+    '''
+        Insert Event Into Database
+    '''
     clubID = get_club_id(club_name)
     query = 'INSERT INTO Event (url, distance, date, clubID) VALUES (%s, %s, %s, %s)'
     value = (eventURL, distance, date, clubID)
@@ -64,6 +77,9 @@ def insert_event(eventURL, distance, date, club_name):
     sql_connection.commit()
 
 def insert_cyclist(cyclists):
+    '''
+        Get Cyclist Info into database
+    '''
     if (len(cyclists) > 0):
         query = 'INSERT INTO Cyclist (name, air, clubID) VALUES (%s, %s, %s)'
         values = cyclists
@@ -74,6 +90,9 @@ def insert_cyclist(cyclists):
         print (0, "Cyclist Inserted")
 
 def insert_record(records):
+    '''
+        Insert each cycling record of an event into database
+    '''
     query = 'INSERT INTO Record (air, eventID, time_mins) VALUES (%s, %s, %s) ON DUPLICATE KEY UPDATE time_mins = VALUES (time_mins);'
     values = records
     mysql_cursor.executemany(query, values)
@@ -81,28 +100,37 @@ def insert_record(records):
     print (mysql_cursor.rowcount, "Records Inserted/Updated")
 
 def get_all_clubs():
+    '''
+        Get all club from database
+    '''
     query = 'SELECT * FROM Club'
     mysql_cursor.execute(query)
     result = mysql_cursor.fetchall()
     return result
 
 def get_all_cyclists():
+    '''
+        Get all cyclist from database
+    '''
     query = 'SELECT * FROM Cyclist'
     mysql_cursor.execute(query)
     result = mysql_cursor.fetchall()
     return result
 
 def get_all_records():
+    '''
+        Get all BRM record for each event
+    '''
     query = 'SELECT * FROM Record'
     mysql_cursor.execute(query)
     result = mysql_cursor.fetchall()
     return result
 
-
-## Insert Record
-
 ## Fetch records
 def fetch_records(eventURL):
+    '''
+        Fetch all cyclist record from a particular event. It fetches the information from AIR website
+    '''
     r = requests.get(eventURL)
     soup = BeautifulSoup(r.text, 'html.parser')
     data = []
@@ -122,6 +150,9 @@ def fetch_records(eventURL):
     return data
 
 def insert_new_clubs_in_db(data):
+    '''
+        Insert club information in database
+    '''
     clubs = get_all_clubs()
     old_clubs = []
     for club in clubs:
@@ -134,6 +165,9 @@ def insert_new_clubs_in_db(data):
     insert_clubs(new_clubs)
 
 def insert_new_cyclist_in_db(data):
+    '''
+        Insert Cyclist information in database
+    '''
     clubs = get_all_clubs()
     clubs_dict = {}
     for club in clubs:
@@ -152,7 +186,9 @@ def insert_new_cyclist_in_db(data):
     insert_cyclist(new_cyclist)
 
 def insert_new_record_in_db(data, eventURL):
-    ## Drop all records with current eventURL
+    '''
+        Insert multiple records related to a event
+    '''
     clubs = get_all_clubs()
     clubs_dict = {}
     for club in clubs:
@@ -165,6 +201,8 @@ def insert_new_record_in_db(data, eventURL):
 
 def get_event_details_from_url(eventURL):
     '''
+        Find details about event using event URL
+        
         args:
             eventURL: string
         return:
@@ -184,6 +222,8 @@ def get_event_details_from_url(eventURL):
 
 def fetch_and_dump(eventURLs):
     '''
+        Fetch event details and records from each event URL and dump into database
+
         args:
             eventURLs: list
         return:
@@ -220,8 +260,8 @@ def fetch_and_dump(eventURLs):
 
 def get_event_urls():
     '''
-        args:
-            
+        Fetch all the event URLs from AIR website
+
         return:
             List of event URLs on event page
     '''
