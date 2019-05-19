@@ -46,7 +46,7 @@ def insert_clubs(club_names):
     else:
         print (0, "Clubs Inserted")
 
-def get_event_id(eventURL):
+def get_event_id_from_url(eventURL):
     query = 'SELECT * FROM Event WHERE url = %s'
     value = (eventURL, )
     mysql_cursor.execute(query, value)
@@ -157,39 +157,51 @@ def insert_new_record_in_db(data, eventURL):
     clubs_dict = {}
     for club in clubs:
         clubs_dict[club[1]] = club[0]
-    eventID = get_event_id(eventURL)
+    eventID = get_event_id_from_url(eventURL)
     records = []
     for record in data:
         records.append((record['air_number'], eventID, record['time']))
     insert_record(records)
 
-def get_event_details(eventURL):
+def get_event_details_from_url(eventURL):
+    '''
+        args:
+            eventURL: string
+        return:
+            club_name: string
+            distance: string
+            eventURL: string
+            date: string
+    '''
     r = requests.get(eventURL)
     soup = BeautifulSoup(r.text, 'html.parser')
-    club_name = soup.find(id="banner").div.find_all(attrs = {"class":"row"})[0].h2.text.strip()
-    distance = re.findall('(.+) BRM', soup.find(id="banner").div.find_all(attrs = {"class":"row"})[1].h1.text)[0].strip()
+    club_name = soup.find(id="banner").div.find_all(attrs = {"class":"row"})[0].h2.text.strip().title()
+    distance = re.findall('(.+) B', soup.find(id="banner").div.find_all(attrs = {"class":"row"})[1].h1.text)[0].strip()
     date_string = re.findall('on (.+)', soup.find(id="banner").div.find_all(attrs = {"class":"row"})[1].h1.text)[0].strip()
     date_object = datetime.datetime.strptime(date_string, '%d-%b-%Y')
     date = str(date_object.year) + '-' + str(date_object.month) + '-' + str(date_object.day)
     return club_name, distance, eventURL, date
 
-eventURL = 'https://www.audaxindia.org/event-e-2352'
-OVERWRITE_EVENT = True
-
 def fetch_and_dump(eventURLs):
+    '''
+        args:
+            eventURLs: list
+        return:
+    '''
     for i, eventURL in enumerate(eventURLs):
 
         if (OVERWRITE_EVENT == False):
-            if (get_event_id(eventURL)):
+            # If event is present in events table then skip that even.
+            if (get_event_id_from_url(eventURL)):
                 print ("\n\nProcessing ", i+1, "/", len(eventURLs) ,"\t", "Skipping\t", eventURL)
                 continue
 
-        club_name, distance, eventURL, date = get_event_details(eventURL)
+        club_name, distance, eventURL, date = get_event_details_from_url(eventURL)
 
         print ("\n\nProcessing ", i+1, "/", len(eventURLs) ,"\t", club_name, "\t", distance, "\t", eventURL, "\t", date)
-
-        if (not get_club_id(club_name.title())):
-            insert_clubs([club_name.title()])
+        
+        if (not get_club_id(club_name)):
+            insert_clubs([club_name])
 
         data = fetch_records(eventURL)
 
@@ -200,7 +212,7 @@ def fetch_and_dump(eventURLs):
         insert_new_cyclist_in_db(data)
 
         ## Insert Event in Database
-        if (not get_event_id(eventURL)):
+        if (not get_event_id_from_url(eventURL)):
             insert_event(eventURL, distance, date, club_name)
 
         ## Insert Record in Database
@@ -224,5 +236,6 @@ def get_event_urls():
     print ("\n\nFound", len(events_links), "URLs on page", EVENT_PAGE_URL, "\n\n")
     return events_links
 
+OVERWRITE_EVENT = False
 event_urls = get_event_urls()
 fetch_and_dump(event_urls)
