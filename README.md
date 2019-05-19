@@ -1,5 +1,7 @@
 # AIR
 
+Medium Article: https://medium.com/@debugger24/brms-in-india-694082dabcfe
+
 Install MySQL and Create db and set the credentials in `init_db.py` and `fetch_data.py`
 
 To Initialize Database
